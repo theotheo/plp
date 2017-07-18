@@ -24,10 +24,10 @@ def download_repo(r, dir):
 
 @click.command()
 @click.option('--pages', default=1, help='Number of pages.')
-@click.prompt('Github search query', default='stars:>50 language:"Jupyter Notebook"',
+@click.option('--query', prompt='Github search query', default='stars:>50 language:"Jupyter Notebook"',
     show_default=True)
 @click.option('--dir', default=REPOS_DIR, help='Directory to save repos (default: {})'.format(REPOS_DIR))
-def get_repos(query, pages, dir):
+def get_repos(pages, query,  dir):
     res = g.search_repositories(query)
 
     for i in tqdm(range(pages)):
