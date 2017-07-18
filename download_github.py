@@ -2,15 +2,15 @@ from github import Github
 
 import os
 import requests
-import zipfile
+import click
+from tqdm import tqdm
 
 REPOS_DIR = 'data/'
 
 g = Github()
 
-def download_repo(r, dir=REPOS_DIR):
+def download_repo(r, dir):
     fn = '{}/{}.zip'.format(dir, r.name)
-    print(r.name)
 
     if not os.path.exists(fn):
         archive_link = r.get_archive_link('zipball')
@@ -21,15 +21,21 @@ def download_repo(r, dir=REPOS_DIR):
 
     return fn
 
-res = g.search_repositories(' stars:>50 language:"Jupyter Notebook"')
 
-repos_stat = {}
-for i in range(3):
-    page = res.get_page(i)
-    if page:
-        for repo in page:
-            print(repo.description)
-            download_repo(repo)
-            #
-            # modules = stats_for_repo(repo)
-            # repos_stat[repo.name] = modules
+@click.command()
+@click.option('--pages', default=1, help='Number of pages.')
+@click.prompt('Github search query', default='stars:>50 language:"Jupyter Notebook"',
+    show_default=True)
+@click.option('--dir', default=REPOS_DIR, help='Directory to save repos (default: {})'.format(REPOS_DIR))
+def get_repos(query, pages, dir):
+    res = g.search_repositories(query)
+
+    for i in tqdm(range(pages)):
+        page = res.get_page(i)
+        if page:
+            for repo in tqdm(page):
+                print(repo.description)
+                download_repo(repo, dir)
+
+if __name__ == '__main__':
+    get_repos()
